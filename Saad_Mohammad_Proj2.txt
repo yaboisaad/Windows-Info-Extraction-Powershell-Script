@@ -1,0 +1,133 @@
+<#
+Mohammad Saad
+CFRS 664
+#>
+
+Write-Host "This Powershell script will be used for live incident response."
+Write-Host "All output files will be saved into the home directory or 'C' drive of this computer."
+Write-Host "The commands below can be modified based on the situation or type of incident and information that is being asked to be acquired."
+Write-Host "The output of the script will be saved into a text file in the same directory as this script."
+
+<#This variable will be used as a placeholder for the name of the file.#>
+$file_name = Read-Host "Please enter a file name and include .txt at the end."
+<#The text file will be saved in the same directory as this script.#>
+
+<#This line below will be the first line of the text file.#>
+Write-Output "Incident Response Data Collection from Powershell script:" |Out-File $file_name
+
+<#The current date and time will be saved into the output text file#>
+Write-Host "Collecting the current date and time; Saved to text file"
+Write-Output "Date and time of data collection:" | Out-File $file_name -Append
+Get-Date | Out-File $file_name -Append
+
+<#The get-computerinfo command will collect system and operating system properties of the computer#>
+Write-Host "Collecting computer information; Saved to text file"
+Write-Output "Computer Information:" | Out-File $file_name -Append
+Get-ComputerInfo | Out-File $file_name -Append
+
+<#The get-service command will get all of the services that are currently running and stopped ones too.#>
+Write-Host "Collecting all running and stopped services"
+Write-Output "All Running and Stopped Services saved in csv. Name of file: all_services.csv" | Out-File $file_name -Append
+Get-Service | Export-Csv -Path .\all_services.csv
+
+<#The get-process command will get all of the processes on the local computer.#>
+Write-Host "Collecting all of the running and stopped processes; Saving in a csv"
+Write-Output "All running and Stopped processes saved in csv. Name of file: app_processes.csv" | Out-File $file_name -Append
+Get-Process | Export-Csv -Path .\app_processes.csv
+<#Get-WmiObject -Class Win32_Process | Export-Csv -Path .\wmi_Processes.csv #>
+
+<#This command will collect the contents of local DNS client cache#>
+Write-Host "The DNS cache export file is saved on the Desktop as a csv"
+Write-Output "Local DNS Client Cache info saved as csv. Name of file: dns_cache.csv " | Out-File $file_name -Append
+Get-DnsClientCache | Export-Csv -Path .\dns_cache.csv
+
+<#This command will return the properties of the TCP connections like local IP Address, local port, and the state of the connection.#>
+Write-Host "Collecting TCP connection properties; Saving to text file"
+Write-Output "TCP Connection Properties: " | Out-File $file_name -Append
+Get-NetTCPConnection | Format-Table | Out-File $file_name -Append
+
+<#This command will get IP addresses and link-layer addresses from neighbor cache entries#>
+Write-Host "Collecting Net Neighbor cache entries; Saving to text file"
+Write-Output "Net Neighbor Cache Centries: " | Out-File $file_name -Append
+Get-NetNeighbor | Format-Table | Out-File $file_name -Append
+
+<#This command will collect the IP address configurations and the interfaces that they are associated with.#>
+Write-Host "Collecting IP Address information; Saving to text file"
+Write-Output "IP Address Info and Associated Interfaces: " | Out-File $file_name -Append
+Get-NetIPAddress | Format-Table | Out-File $file_name -Append
+
+<#This command will collect the basic properties of the network adapters#>
+Write-Host "Collecting Basic Network Adapter Properties; Saving to a text file"
+Write-Output "Network Adapter Properties: " | Out-File $file_name -Append
+Get-NetAdapter | Format-Table | Out-File $file_name -Append
+
+<#This command will get the users on the system along with their descrition and if they are enabled or not#>
+Write-Host "Collecting information about users on the system; Saving to text file"
+Write-Output "Local Users/Accounts Info: " | Out-File $file_name -Append
+Get-LocalUser | Format-Table | Out-File $file_name -Append
+
+<#This command gets the patches and updates installed on the computer.#>
+Write-Host "Collecting information about patches and updates on this computer; Saved to text file" 
+Write-Output "Hotfixes/Patches and Updates Info" | Out-File $file_name -Append
+Get-HotFix | select Description, InstalledBy, InstalledOn | Format-Table | Out-File $file_name -Append
+
+<#This command will collect the entries from the System's log event file. Currently, I am only collecting the most recent 500 entries.
+In my opinion, the number of entries collected would be situational. 
+You want to collect as much as you need to but not too much because the files can be very large, sometimes many orders of magnitude large.
+The number of entries would also depend on the timeline of the incident. For the sake of this assignment, I am just collecting 1000 entries from each class.
+This number can easily be changed to whatever the need is depending on the incident.#>
+Write-Host "Collecting events and event logs entries from the system; saving to text file"
+Write-Output "The 500 most recent entries for the System's event log: " | Out-File $file_name -Append
+Get-EventLog System -Newest 500 | Out-File $file_name -Append
+
+<#This command collects logs from applications on the computer system#>
+Write-Host "This command will collect the entries from the event logs for applications on the system."
+Write-Output "The 500 most recent Application event log entries from this system: " | Out-File $file_name -Append
+Get-EventLog Application -Newest 500 | Out-File $file_name -Append
+
+<#This command collects logs from the security class#>
+Write-Host "Collecting Security Event Log entries, saving to text file"
+Write-Output "The 500 most recent Security event log entries from this system: " | Out-File $file_name -Append
+Get-EventLog Security -Newest 500 | Out-File $file_name -Append
+
+<#This command will just paste whatever is loaded on to the clipboard at the time of collection into the text file#>
+Write-Host "Collecting clipboard data; saving to text file"
+Write-Output "Clipboard data (May be blank): " | Out-File $file_name -Append
+Get-Clipboard | Out-File $file_name -Append
+Write-Output "End clipboard data here." | Out-File $file_name -Append
+
+<#This command collects task information on the computer along with the state that it is in
+Some tasks are ready, disabled, or running#>
+Write-Host "Collecting tasks registered on the computer; saving to text file."
+Write-Output "Scheduled Task Information: " | Out-File $file_name -Append
+Get-ScheduledTask | Format-Table | Out-File $file_name -Append
+
+<#This command will show all of the drives connected to the computer at the time of script execution#>
+Write-Host "Collecting information about drives connected to system; Saved to the text file."
+Write-Output "All Drives connected to this computer: " | Out-File $file_name -Append
+Get-PSDrive | Format-Table | Out-File $file_name -Append
+
+<#This command will collect the registry data from applications that are installed on this computer.#>
+<#It's one way of seeing what applications are installed on the computer#>
+Write-Host "Collecting registry info about applications on this computer; saving to text file"
+Write-Output "Registry data of applications on computer: " | Out-File $file_name -Append
+Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" | Format-Table | Out-File $file_name -Append
+
+<#Recording the date and time again at the end of the code to see how long it took to execute the script and collect all the data#>
+Write-Host "Collecting the current date and time again; Saving to text file"
+Write-Output "Date and time of completion of data collection: " | Out-File $file_name -Append
+Get-Date | Out-File $file_name -Append
+
+<#Calculate the hash of each csv file and single text file
+It is important to do this to ensure that none of the files 
+have been altered in any way and the data still has integrity
+All of the hashes will be stored in a separate text file named 'incident_hashes.txt'#>
+Write-Host "Hash of all files created from this script will be stored in a new text file named 'incident_hashes.txt'"
+Write-Host "!!!
+ALL FILES ARE SAVED IN THE HOME DIRECTORY OF THE 'C' DRIVE OF THE COMPUTER
+!!!"
+$hash_file = "incident_hashes.txt"
+Get-FileHash $file_name | Format-List | Out-File $hash_file
+Get-FileHash .\all_services.csv | Format-List | Out-File $hash_file -Append
+Get-FileHash .\app_processes.csv | Format-List | Out-File $hash_file -Append
+Get-FileHash .\dns_cache.csv | Format-List | Out-File $hash_file -Append
